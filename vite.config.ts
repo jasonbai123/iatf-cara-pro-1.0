@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 // import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/iatf-cara-assistant-pro-1.0/',
+  base: '/iatf-cara-pro-1.0/',
   server: {
     port: 3000,
     host: '0.0.0.0',
