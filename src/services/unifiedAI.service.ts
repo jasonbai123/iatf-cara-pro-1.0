@@ -126,39 +126,44 @@ async function queueRequest(provider: string, key: string, requestFn: () => Prom
 // ========== Gemini API ==========
 async function callGeminiAPI(nc: NCItem, section: SectionType, apiKey: string, closingMeetingDate?: string): Promise<string> {
   return queueRequest('gemini', 'generate', async () => {
-    const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey });
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey });
 
-    const prompt = buildPrompt(nc, section, closingMeetingDate);
+      const prompt = buildPrompt(nc, section, closingMeetingDate);
 
-    let retries = 3;
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: prompt,
-          config: {
-            systemInstruction: getSystemInstruction(),
-            temperature: 0.3,
-          },
-        });
+      let retries = 3;
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: prompt,
+            config: {
+              systemInstruction: getSystemInstruction(),
+              temperature: 0.3,
+            },
+          });
 
-        return response.text || 'AI 生成失败，请重试。';
-      } catch (error: any) {
-        // 429 错误：速率限制，等待后重试
-        if (error?.status === 429 || error?.message?.includes('429')) {
-          const waitTime = Math.pow(2, i) * 1000;
-          logger.log(`Gemini API 速率限制，等待 ${waitTime}ms 后重试 (${i + 1}/${retries})`);
-          if (i < retries - 1) {
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-            continue;
+          return response.text || 'AI 生成失败，请重试。';
+        } catch (error: any) {
+          // 429 错误：速率限制，等待后重试
+          if (error?.status === 429 || error?.message?.includes('429')) {
+            const waitTime = Math.pow(2, i) * 1000;
+            logger.log(`Gemini API 速率限制，等待 ${waitTime}ms 后重试 (${i + 1}/${retries})`);
+            if (i < retries - 1) {
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              continue;
+            }
           }
+          throw new Error(`Gemini API 调用失败: ${error instanceof Error ? error.message : String(error)}`);
         }
-        throw new Error(`Gemini API 调用失败: ${error instanceof Error ? error.message : String(error)}`);
       }
-    }
 
-    throw new Error('Gemini API 请求失败，请稍后重试');
+      throw new Error('Gemini API 请求失败，请稍后重试');
+    } catch (error) {
+      logger.error('Gemini API 导入或调用失败:', error);
+      throw new Error(`Gemini API 服务错误: ${error instanceof Error ? error.message : String(error)}`);
+    }
   });
 }
 

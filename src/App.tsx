@@ -14,6 +14,8 @@ import {
   ArrowUpTrayIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   PencilIcon,
   InformationCircleIcon,
   QuestionMarkCircleIcon,
@@ -435,6 +437,7 @@ const App: React.FC = () => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string>('');
   const [configuredProviders, setConfiguredProviders] = useState<Record<string, boolean>>({});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
     if (authService.isAuthenticated()) {
@@ -662,104 +665,147 @@ const App: React.FC = () => {
       <ExpiryNotification />
       
       {/* 1. Sidebar (Dark) */}
-      <aside className="w-64 bg-[#232d3b] text-white flex flex-col shrink-0">
+      <aside className={`bg-[#232d3b] text-white flex flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
         {/* Logo Area */}
-        <div className="h-16 flex items-center px-4 bg-[#1b2430]">
-           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center font-bold text-white text-xs shadow-lg mr-3 border-2 border-white">
-             IATF
+        <div className="h-16 flex items-center px-4 bg-[#1b2430] justify-between">
+           <div className="flex items-center">
+             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center font-bold text-white text-xs shadow-lg mr-3 border-2 border-white">
+               IATF
+             </div>
+             {!sidebarCollapsed && <div className="font-bold text-gray-200">概览</div>}
            </div>
-           <div className="font-bold text-gray-200">概览</div>
+           <button 
+             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+             className="text-gray-400 hover:text-white transition-colors"
+             title={sidebarCollapsed ? '展开侧边栏' : '收缩侧边栏'}
+           >
+             {sidebarCollapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
+           </button>
         </div>
 
         {/* Menu Items */}
         <nav className="flex-1 overflow-y-auto py-4">
           <div 
             onClick={() => setCurrentView('START')}
-            className={`px-4 py-2 cursor-pointer font-bold transition-colors ${currentView === 'START' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2 cursor-pointer flex items-center gap-2 font-bold transition-colors ${currentView === 'START' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+            title="开始"
           >
-            开始
+            <SparklesIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '开始'}
           </div>
           
-          <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">设置</div>
+          {!sidebarCollapsed && <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">设置</div>}
           <div 
             onClick={() => setCurrentView('SETTINGS_GENERAL')}
-            className={`px-4 py-2 cursor-pointer transition-colors ${currentView === 'SETTINGS_GENERAL' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${currentView === 'SETTINGS_GENERAL' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="一般"
           >
-            一般
+            <InformationCircleIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '一般'}
           </div>
           <div
             onClick={() => setCurrentView('SETTINGS_DATABASE')}
-            className={`px-4 py-2 cursor-pointer transition-colors ${currentView === 'SETTINGS_DATABASE' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${currentView === 'SETTINGS_DATABASE' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="数据库和备份设置"
           >
-            数据库和备份设置
+            <CircleStackIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '数据库和备份设置'}
           </div>
           <div
             onClick={() => setCurrentView('SETTINGS_AI')}
-            className={`px-4 py-2 cursor-pointer transition-colors ${currentView === 'SETTINGS_AI' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${currentView === 'SETTINGS_AI' ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="AI 配置"
           >
-            AI 配置
+            <SparklesIcon className="w-4 h-4" />
+            {!sidebarCollapsed && 'AI 配置'}
           </div>
 
-          <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">不符合项管理</div>
+          {!sidebarCollapsed && <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">不符合项管理</div>}
           <div 
             onClick={() => setCurrentView('NC_LIST')}
-            className={`px-4 py-2 cursor-pointer flex justify-between items-center transition-all ${
-              currentView === 'NC_LIST' 
-                ? 'bg-[#00a65a] text-white border-l-4 border-[#00a65a]' 
-                : 'text-gray-400 hover:text-white border-l-4 border-transparent'
-            }`}
+            className={`px-4 py-2 cursor-pointer flex justify-between items-center transition-all ${currentView === 'NC_LIST' ? 'bg-[#00a65a] text-white border-l-4 border-[#00a65a]' : 'text-gray-400 hover:text-white border-l-4 border-transparent'}`}
+            title="不符合项和措施"
           >
-            <span>不符合项和措施</span>
-            <span className={`text-xs font-bold px-1.5 rounded-sm ${currentView === 'NC_LIST' ? 'bg-white text-[#00a65a]' : 'bg-[#00a65a] text-white'}`}>
-              {ncs.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <ListBulletIcon className="w-4 h-4" />
+              {!sidebarCollapsed && <span>不符合项和措施</span>}
+            </div>
+            {!sidebarCollapsed && (
+              <span className={`text-xs font-bold px-1.5 rounded-sm ${currentView === 'NC_LIST' ? 'bg-white text-[#00a65a]' : 'bg-[#00a65a] text-white'}`}>
+                {ncs.length}
+              </span>
+            )}
           </div>
           <div 
             onClick={() => setCurrentView('ALL_REPORTS')}
-            className={`px-4 py-2 cursor-pointer transition-colors ${currentView === 'ALL_REPORTS' ? 'bg-[#00a65a] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${currentView === 'ALL_REPORTS' ? 'bg-[#00a65a] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="所有不符合管理报告"
           >
-            所有不符合管理报告
+            <DocumentTextIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '所有不符合管理报告'}
           </div>
 
-          <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">用户管理</div>
+          {!sidebarCollapsed && <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">用户管理</div>}
           <div 
             onClick={() => setShowUserManagement(true)}
             className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${showUserManagement ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="用户管理"
           >
             <UsersIcon className="w-4 h-4" />
-            <span>用户管理</span>
+            {!sidebarCollapsed && <span>用户管理</span>}
           </div>
           <div 
             onClick={() => setShowChangePassword(true)}
             className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${showChangePassword ? 'bg-[#444] text-white' : 'text-gray-400 hover:text-white'}`}
+            title="修改密码"
           >
             <LockClosedIcon className="w-4 h-4" />
-            <span>修改密码</span>
+            {!sidebarCollapsed && <span>修改密码</span>}
           </div>
           {authService.isAdmin() && (
             <div 
               onClick={() => setShowAdminDashboard(true)}
               className={`px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors ${showAdminDashboard ? 'bg-[#444] text-white' : 'text-red-400 hover:text-red-300'}`}
+              title="系统管理员"
             >
               <UserIcon className="w-4 h-4" />
-              <span>系统管理员</span>
+              {!sidebarCollapsed && <span>系统管理员</span>}
             </div>
           )}
           <div 
             onClick={handleLogout}
             className="px-4 py-2 cursor-pointer flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            title="退出登录"
           >
             <ArrowRightOnRectangleIcon className="w-4 h-4" />
-            <span>退出登录</span>
+            {!sidebarCollapsed && <span>退出登录</span>}
           </div>
 
-          <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">信息</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">工作指示</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">帮助维基</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">视频教程</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">支持</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">版本说明</div>
-          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">数据隐私</div>
+          {!sidebarCollapsed && <div className="mt-4 px-4 py-1 text-gray-400 text-xs font-bold uppercase">信息</div>}
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="工作指示">
+            <ListBulletIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '工作指示'}
+          </div>
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="帮助维基">
+            <QuestionMarkCircleIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '帮助维基'}
+          </div>
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="视频教程">
+            <InformationCircleIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '视频教程'}
+          </div>
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="支持">
+            <QuestionMarkCircleIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '支持'}
+          </div>
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="版本说明">
+            <DocumentTextIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '版本说明'}
+          </div>
+          <div className="px-4 py-2 text-gray-400 hover:text-white cursor-pointer flex items-center gap-2" title="数据隐私">
+            <LockClosedIcon className="w-4 h-4" />
+            {!sidebarCollapsed && '数据隐私'}
+          </div>
         </nav>
       </aside>
 
