@@ -1,0 +1,345 @@
+import React, { useState, useEffect } from 'react';
+import { authService } from '../services/auth.service';
+import { LoginRequest, LoginResponse } from '../types/auth.types';
+import { logger } from '../shared/utils/logger';
+import { QrCodeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+
+interface LoginProps {
+  onLoginSuccess: (user: any) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+  const [loginMethod, setLoginMethod] = useState<'phone' | 'wechat'>('phone');
+
+  const handleLoginSuccess = (response: LoginResponse) => {
+    if (response.success && response.user) {
+      onLoginSuccess(response.user);
+    } else {
+      alert(response.message || '登录失败');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">IATF CARA</h1>
+          <p className="text-gray-600">请选择登录方式</p>
+        </div>
+
+        <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setLoginMethod('phone')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg transition-all ${
+              loginMethod === 'phone'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <DevicePhoneMobileIcon className="w-5 h-5" />
+            手机登录
+          </button>
+          <button
+            onClick={() => setLoginMethod('wechat')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg transition-all ${
+              loginMethod === 'wechat'
+                ? 'bg-green-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <QrCodeIcon className="w-5 h-5" />
+            微信登录
+          </button>
+        </div>
+
+        {loginMethod === 'phone' ? (
+          <PhoneLogin onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <WeChatLogin onLoginSuccess={handleLoginSuccess} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }> = ({ onLoginSuccess }) => {
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
+  const [countdown, setCountdown] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleSendCode = async () => {
+    if (!phone || phone.length !== 11) {
+      alert('请输入正确的手机号码');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await authService.sendVerificationCode(phone);
+      
+      if (response.success) {
+        setCountdown(60);
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        alert(response.message || '发送验证码失败');
+      }
+    } catch (error) {
+      alert('发送验证码失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!phone || phone.length !== 11) {
+      alert('请输入正确的手机号码');
+      return;
+    }
+    if (!code || code.length !== 6) {
+      alert('请输入6位验证码');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await authService.loginWithPhone(phone, code);
+      onLoginSuccess(response);
+    } catch (error) {
+      alert('登录失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">手机号码</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+          placeholder="请输入手机号码"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+          maxLength={11}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">验证码</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="请输入验证码"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            maxLength={6}
+          />
+          <button
+            onClick={handleSendCode}
+            disabled={countdown > 0 || loading}
+            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+              countdown > 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400'
+            }`}
+          >
+            {countdown > 0 ? `${countdown}秒` : '获取验证码'}
+          </button>
+        </div>
+      </div>
+
+      <button
+        onClick={handleLogin}
+        disabled={loading}
+        className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-all disabled:bg-blue-400 disabled:cursor-not-allowed"
+      >
+        {loading ? '登录中...' : '登录'}
+      </button>
+
+      <div className="text-center text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+        <p className="font-medium text-blue-800 mb-1">测试模式说明</p>
+        <p>验证码固定为：123456</p>
+      </div>
+    </div>
+  );
+};
+
+const WeChatLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }> = ({ onLoginSuccess }) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [status, setStatus] = useState<'loading' | 'waiting' | 'scanned' | 'confirmed' | 'expired'>('loading');
+
+  useEffect(() => {
+    loadQRCode();
+  }, []);
+
+  const loadQRCode = async () => {
+    try {
+      setStatus('loading');
+      const response = await authService.getWeChatQRCode();
+      
+      if (response.success && response.qrCodeUrl) {
+        setQrCodeUrl(response.qrCodeUrl);
+        setStatus('waiting');
+        
+        pollLoginStatus(response.sessionId);
+      } else {
+        setStatus('expired');
+      }
+    } catch (error) {
+      setStatus('expired');
+    }
+  };
+
+  const pollLoginStatus = async (sessionId: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await authService.checkWeChatLoginStatus(sessionId);
+        
+        if (response.status === 'scanned') {
+          setStatus('scanned');
+        } else if (response.status === 'confirmed') {
+          setStatus('confirmed');
+          clearInterval(pollInterval);
+          if (response.user) {
+            onLoginSuccess({
+              success: true,
+              user: response.user,
+              token: response.token,
+            });
+          }
+        } else if (response.status === 'expired') {
+          setStatus('expired');
+          clearInterval(pollInterval);
+        }
+      } catch (error) {
+        clearInterval(pollInterval);
+        setStatus('expired');
+      }
+    }, 2000);
+  };
+
+  const getStatusMessage = () => {
+    switch (status) {
+      case 'loading':
+        return '正在生成二维码...';
+      case 'waiting':
+        return '请使用微信扫描二维码登录';
+      case 'scanned':
+        return '已扫描，请在手机上确认登录';
+      case 'confirmed':
+        return '登录成功';
+      case 'expired':
+        return '二维码已过期';
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (status) {
+      case 'loading':
+        return 'text-gray-600';
+      case 'waiting':
+        return 'text-blue-600';
+      case 'scanned':
+        return 'text-green-600';
+      case 'confirmed':
+        return 'text-green-600';
+      case 'expired':
+        return 'text-red-600';
+    }
+  };
+
+  return (
+    <div className="space-y-4 relative z-0">
+      <div className="flex justify-center">
+        <div className="relative z-0">
+          {qrCodeUrl ? (
+            <img
+              src={qrCodeUrl}
+              alt="微信登录二维码"
+              className="w-64 h-64 border-2 border-gray-200 rounded-lg"
+            />
+          ) : (
+            <div className="w-64 h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p>加载中...</p>
+              </div>
+            </div>
+          )}
+          
+          {status === 'scanned' && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-green-600 font-medium">已扫描</p>
+              </div>
+            </div>
+          )}
+          
+          {status === 'expired' && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 rounded-lg flex items-center justify-center z-10">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <p className="text-red-600 font-medium mb-2">已过期</p>
+                <button
+                  onClick={loadQRCode}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all cursor-pointer"
+                >
+                  刷新二维码
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p className={`text-center text-sm font-medium ${getStatusColor()}`}>
+        {getStatusMessage()}
+      </p>
+
+      <div className="text-center text-xs text-gray-500">
+        <p>打开微信，扫描二维码登录</p>
+      </div>
+
+      <div className="border-t border-gray-200 pt-4 space-y-3">
+        <button
+          onClick={async () => {
+            try {
+              const response = await authService.loginWithWechat('mock_openid_' + Date.now());
+              onLoginSuccess(response);
+            } catch (error) {
+              logger.error('模拟微信登录失败:', error);
+              alert('模拟微信登录失败: ' + (error instanceof Error ? error.message : String(error)));
+            }
+          }}
+          className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-all active:bg-green-800 cursor-pointer relative z-20"
+          style={{ pointerEvents: 'auto', position: 'relative' }}
+          type="button"
+        >
+          模拟微信登录（测试用）
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
