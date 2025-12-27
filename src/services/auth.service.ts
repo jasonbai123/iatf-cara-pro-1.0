@@ -1,4 +1,4 @@
-import { User, LoginRequest, LoginResponse, SendCodeRequest, SendCodeResponse, ChangePasswordRequest, ChangePasswordResponse } from '../types/auth.types';
+import { User, UserType, LoginRequest, LoginResponse, SendCodeRequest, SendCodeResponse, ChangePasswordRequest, ChangePasswordResponse } from '../types/auth.types';
 import { logger } from '../shared/utils/logger';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
@@ -82,7 +82,7 @@ class AuthService {
           phone: phone,
           nickname: '测试用户',
           avatar: '',
-          userType: 'trial',
+          userType: UserType.TRIAL,
           expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
@@ -106,7 +106,7 @@ class AuthService {
           phone: phone,
           nickname: '系统管理员',
           avatar: '',
-          userType: 'admin',
+          userType: UserType.ADMIN,
           expiryDate: undefined,
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
@@ -159,7 +159,7 @@ class AuthService {
         nickname: '微信用户',
         avatar: '',
         wechatOpenId: openId,
-        userType: 'trial',
+        userType: UserType.TRIAL,
         expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString()

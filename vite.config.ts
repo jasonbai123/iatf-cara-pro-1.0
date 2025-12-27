@@ -63,6 +63,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      external: [
+        '@google/genai',
+        '@anthropic-ai/sdk',
+        'openai'
+      ]
+    }
   }
 });

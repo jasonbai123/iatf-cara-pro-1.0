@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { authService, User } from '../services/auth.service';
+import { User } from '../types/auth.types';
+import { authService } from '../services/auth.service';
 import { logger } from '../shared/utils/logger';
 import { TrashIcon, XMarkIcon, UserIcon } from '@heroicons/react/24/outline';
 

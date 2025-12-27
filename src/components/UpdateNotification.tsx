@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { updateService, VersionInfo } from '../services/update.service';
+import { VersionInfo } from '../types/auth.types';
+import { updateService } from '../services/update.service';
 import { logger } from '../shared/utils/logger';
 import { 
   CloudArrowDownIcon, 
@@ -43,9 +44,7 @@ const UpdateNotification: React.FC = () => {
       setDownloading(true);
       setDownloadProgress(0);
 
-      await updateService.downloadUpdate((progress) => {
-        setDownloadProgress(progress);
-      });
+      await updateService.downloadUpdate();
 
       setShowNotification(false);
       alert('更新下载完成，请手动安装更新');
