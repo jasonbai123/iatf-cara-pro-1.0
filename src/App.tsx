@@ -1652,7 +1652,7 @@ const App: React.FC = () => {
                              <div className="grid grid-cols-12 gap-4 items-center">
                                 <div className="col-span-2 flex items-center gap-1"><QuestionMarkCircleIcon className="w-4 h-4 text-gray-700"/><Label text="标准条款" /></div>
                                 <div className="col-span-4"><Input value={nc.standardClause} onChange={(e) => handleUpdateNC(nc.id, 'standardClause', e.target.value)} /></div>
-                                <div className="col-span-6"><Input value="生产和服务提供的控制" onChange={(e) => handleUpdateNC(nc.id, 'processDescription', e.target.value)} /></div>
+                                <div className="col-span-6"><Input value={nc.process} onChange={(e) => handleUpdateNC(nc.id, 'process', e.target.value)} /></div>
                              </div>
 
                              <div className="grid grid-cols-12 gap-4 items-center">
