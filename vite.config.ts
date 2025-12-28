@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: '/iatf-cara-pro-1.0/',
   server: {
-    port: 3000,
+    port: 5173,
     host: '0.0.0.0',
   },
   plugins: [
