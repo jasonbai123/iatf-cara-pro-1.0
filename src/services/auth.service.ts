@@ -1,7 +1,7 @@
 import { User, UserType, LoginRequest, LoginResponse, SendCodeRequest, SendCodeResponse, ChangePasswordRequest, ChangePasswordResponse } from '../types/auth.types';
 import { logger } from '../shared/utils/logger';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://api.example.com') + '/api';
 const WECHAT_APP_ID = import.meta.env.VITE_WECHAT_APP_ID || '';
 const SUPER_ADMIN_PHONE = import.meta.env.VITE_SUPER_ADMIN_PHONE || '13510420462';
 

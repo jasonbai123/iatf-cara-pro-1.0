@@ -199,7 +199,7 @@ class VerificationCodeService {
       await this.db.put('verificationCodes', codes);
     }
   }
-}
+};
 
 class WechatSessionService {
   constructor(db) {
@@ -272,7 +272,8 @@ export default {
 
         return new Response(JSON.stringify({
           success: true,
-          message: '验证码已发送'
+          message: '验证码已发送',
+          code: code
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

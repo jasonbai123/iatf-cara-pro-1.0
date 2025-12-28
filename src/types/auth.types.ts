@@ -46,6 +46,7 @@ export interface SendCodeResponse {
   success: boolean;
   message?: string;
   expireTime?: number;
+  code?: string;
 }
 
 export interface ChangePasswordRequest {

@@ -1,6 +1,7 @@
 {
   "name": "iatf-cara-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "IATF CARA Assistant Pro Backend API",
   "main": "server.js",
   "scripts": {

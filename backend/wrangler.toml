@@ -1,6 +1,6 @@
 name = "iatf-cara-backend"
 main = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-12-01"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }
@@ -10,9 +10,9 @@ vars = { ENVIRONMENT = "development" }
 
 [[kv_namespaces]]
 binding = "DATA"
-id = "your_kv_namespace_id"
-preview_id = "your_preview_kv_namespace_id"
+id = "d474622536824ac4b281e252e526836d"
+preview_id = "d474622536824ac4b281e252e526836d"
 
 [vars]
-JWT_SECRET = "your_jwt_secret_key_here"
+JWT_SECRET = "iatf_cara_jwt_secret_2024_cloudflare"
 SUPER_ADMIN_PHONE = "13510420462"

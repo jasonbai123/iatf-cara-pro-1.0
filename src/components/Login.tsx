@@ -67,6 +67,7 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
   const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [displayCode, setDisplayCode] = useState('');
 
   const handleSendCode = async () => {
     if (!phone || phone.length !== 11) {
@@ -89,6 +90,11 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
             return prev - 1;
           });
         }, 1000);
+        
+        if (response.code) {
+          setDisplayCode(response.code);
+          alert(`验证码已发送：${response.code}`);
+        }
       } else {
         alert(response.message || '发送验证码失败');
       }
