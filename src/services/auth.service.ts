@@ -3,6 +3,7 @@ import { logger } from '../shared/utils/logger';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
 const WECHAT_APP_ID = import.meta.env.VITE_WECHAT_APP_ID || '';
+const SUPER_ADMIN_PHONE = import.meta.env.VITE_SUPER_ADMIN_PHONE || '13510420462';
 
 class AuthService {
   private token: string | null = null;
@@ -48,8 +49,8 @@ class AuthService {
     } catch (error) {
       logger.error('发送验证码失败:', error);
       return {
-        success: true,
-        message: '模拟模式：验证码已发送（测试验证码：123456）',
+        success: false,
+        message: '发送验证码失败，请稍后重试',
       };
     }
   }
@@ -69,64 +70,20 @@ class AuthService {
       if (data.success && data.user && data.token) {
         this.token = data.token;
         this.currentUser = data.user;
+        
+        if (phone === SUPER_ADMIN_PHONE) {
+          this.currentUser.userType = UserType.ADMIN;
+        }
+        
         this.saveToStorage();
       }
 
       return data;
     } catch (error) {
-      logger.error('登录失败，使用模拟登录:', error);
-      
-      if (code === '123456') {
-        const mockUser: User = {
-          id: 'mock_user_' + Date.now(),
-          phone: phone,
-          nickname: '测试用户',
-          avatar: '',
-          userType: UserType.TRIAL,
-          expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString()
-        };
-        
-        this.token = 'mock_token_' + Date.now();
-        this.currentUser = mockUser;
-        this.saveToStorage();
-        
-        return {
-          success: true,
-          message: '模拟登录成功',
-          user: mockUser,
-          token: this.token
-        };
-      }
-      
-      if (code === '888888') {
-        const mockAdminUser: User = {
-          id: 'mock_admin_' + Date.now(),
-          phone: phone,
-          nickname: '系统管理员',
-          avatar: '',
-          userType: UserType.ADMIN,
-          expiryDate: undefined,
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString()
-        };
-        
-        this.token = 'mock_admin_token_' + Date.now();
-        this.currentUser = mockAdminUser;
-        this.saveToStorage();
-        
-        return {
-          success: true,
-          message: '管理员登录成功',
-          user: mockAdminUser,
-          token: this.token
-        };
-      }
-      
+      logger.error('登录失败:', error);
       return {
         success: false,
-        message: '登录失败，请使用验证码 123456（普通用户）或 888888（管理员）进行模拟登录',
+        message: '登录失败，请稍后重试',
       };
     }
   }
@@ -151,29 +108,10 @@ class AuthService {
 
       return data;
     } catch (error) {
-      logger.error('微信登录失败，使用模拟登录:', error);
-      
-      const mockUser: User = {
-        id: 'mock_wechat_user_' + Date.now(),
-        phone: '13800138000',
-        nickname: '微信用户',
-        avatar: '',
-        wechatOpenId: openId,
-        userType: UserType.TRIAL,
-        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString()
-      };
-      
-      this.token = 'mock_token_' + Date.now();
-      this.currentUser = mockUser;
-      this.saveToStorage();
-      
+      logger.error('微信登录失败:', error);
       return {
-        success: true,
-        message: '模拟微信登录成功',
-        user: mockUser,
-        token: this.token
+        success: false,
+        message: '微信登录失败，请稍后重试',
       };
     }
   }
@@ -273,15 +211,11 @@ class AuthService {
       const data = await response.json();
       return data;
     } catch (error) {
-      logger.error('获取微信二维码失败，使用模拟模式:', error);
-      
-      const sessionId = 'mock_session_' + Date.now();
+      logger.error('获取微信二维码失败:', error);
       
       return {
-        success: true,
-        qrCodeUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9IiNmZmZmZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzMzMyI+6L+Z6YeM55So5oGv6KejPC90ZXh0Pjwvc3ZnPg==',
-        sessionId: sessionId,
-        message: '模拟模式：二维码已生成'
+        success: false,
+        message: '获取微信二维码失败，请稍后重试'
       };
     }
   }

@@ -166,11 +166,6 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
       >
         {loading ? '登录中...' : '登录'}
       </button>
-
-      <div className="text-center text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
-        <p className="font-medium text-blue-800 mb-1">测试模式说明</p>
-        <p>验证码固定为：123456</p>
-      </div>
     </div>
   );
 };
@@ -318,25 +313,6 @@ const WeChatLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void 
 
       <div className="text-center text-xs text-gray-500">
         <p>打开微信，扫描二维码登录</p>
-      </div>
-
-      <div className="border-t border-gray-200 pt-4 space-y-3">
-        <button
-          onClick={async () => {
-            try {
-              const response = await authService.loginWithWechat('mock_openid_' + Date.now());
-              onLoginSuccess(response);
-            } catch (error) {
-              logger.error('模拟微信登录失败:', error);
-              alert('模拟微信登录失败: ' + (error instanceof Error ? error.message : String(error)));
-            }
-          }}
-          className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-all active:bg-green-800 cursor-pointer relative z-20"
-          style={{ pointerEvents: 'auto', position: 'relative' }}
-          type="button"
-        >
-          模拟微信登录（测试用）
-        </button>
       </div>
     </div>
   );
