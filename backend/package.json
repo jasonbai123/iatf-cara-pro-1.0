@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "vercel-build": "echo 'No build step required'"
+    "vercel-build": "echo 'No build step required'",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:login": "wrangler login"
   },
   "keywords": ["iatf", "cara", "backend", "api"],
   "author": "",
