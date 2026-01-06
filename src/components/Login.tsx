@@ -163,6 +163,15 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
             {countdown > 0 ? `${countdown}秒` : '获取验证码'}
           </button>
         </div>
+        {displayCode && (
+          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800">
+              <span className="font-semibold">测试验证码：</span>
+              <span className="text-lg font-bold ml-2">{displayCode}</span>
+            </p>
+            <p className="text-xs text-green-600 mt-1">（开发测试模式，验证码直接显示）</p>
+          </div>
+        )}
       </div>
 
       <button

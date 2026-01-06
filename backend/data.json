@@ -30,5 +30,22 @@
       "used": 1
     }
   ],
-  "wechatSessions": []
+  "wechatSessions": [
+    {
+      "id": "session_1766897392128_q44vu5q8t",
+      "qr_code_url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9IiNmZmZmZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzMzMyI+6L+Z6YeM55So5oGv6KejPC90ZXh0Pjwvc3ZnPg==",
+      "status": "waiting",
+      "user_id": null,
+      "created_at": "2025-12-28T04:49:52.128Z",
+      "expires_at": "2025-12-28T04:54:52.128Z"
+    },
+    {
+      "id": "session_1766897392167_ck1ta3n93",
+      "qr_code_url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9IiNmZmZmZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzMzMyI+6L+Z6YeM55So5oGv6KejPC90ZXh0Pjwvc3ZnPg==",
+      "status": "waiting",
+      "user_id": null,
+      "created_at": "2025-12-28T04:49:52.167Z",
+      "expires_at": "2025-12-28T04:54:52.167Z"
+    }
+  ]
 }
