@@ -136,7 +136,7 @@ async function callGeminiAPI(nc: NCItem, section: SectionType, apiKey: string, c
       for (let i = 0; i < retries; i++) {
         try {
           const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
               systemInstruction: getSystemInstruction(),
@@ -146,8 +146,10 @@ async function callGeminiAPI(nc: NCItem, section: SectionType, apiKey: string, c
 
           return response.text || 'AI 生成失败，请重试。';
         } catch (error: any) {
+          logger.error(`Gemini API 调用失败 (尝试 ${i + 1}/${retries}):`, error);
+          
           // 429 错误：速率限制，等待后重试
-          if (error?.status === 429 || error?.message?.includes('429')) {
+          if (error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota')) {
             const waitTime = Math.pow(2, i) * 1000;
             logger.log(`Gemini API 速率限制，等待 ${waitTime}ms 后重试 (${i + 1}/${retries})`);
             if (i < retries - 1) {
@@ -155,7 +157,11 @@ async function callGeminiAPI(nc: NCItem, section: SectionType, apiKey: string, c
               continue;
             }
           }
-          throw new Error(`Gemini API 调用失败: ${error instanceof Error ? error.message : String(error)}`);
+          
+          // 提供更详细的错误信息
+          const errorMessage = error?.message || String(error);
+          const errorDetails = error?.status ? ` (HTTP ${error.status})` : '';
+          throw new Error(`Gemini API 调用失败${errorDetails}: ${errorMessage}`);
         }
       }
 
@@ -246,6 +252,8 @@ async function callDeepSeekAPI(nc: NCItem, section: SectionType, apiKey: string,
     const prompt = buildPrompt(nc, section, closingMeetingDate);
 
     try {
+      logger.log('DeepSeek API 请求开始...');
+      
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -263,14 +271,25 @@ async function callDeepSeekAPI(nc: NCItem, section: SectionType, apiKey: string,
         })
       });
 
+      logger.log('DeepSeek API 响应状态:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`DeepSeek API 错误: ${response.status} ${JSON.stringify(errorData)}`);
+        logger.error('DeepSeek API 错误详情:', errorData);
+        throw new Error(`DeepSeek API 错误 (${response.status}): ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
-      return data.choices?.[0]?.message?.content || 'DeepSeek 生成失败，请重试。';
+      logger.log('DeepSeek API 响应数据:', data);
+      
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error('DeepSeek API 返回数据格式错误');
+      }
+      
+      return content;
     } catch (error) {
+      logger.error('DeepSeek API 调用异常:', error);
       throw error;
     }
   });
@@ -282,6 +301,9 @@ async function callVolcengineAPI(nc: NCItem, section: SectionType, apiKey: strin
     const prompt = buildPrompt(nc, section, closingMeetingDate);
 
     try {
+      logger.log('火山引擎 API 请求开始...');
+      logger.log('API Key 格式检查:', apiKey.substring(0, 10) + '...');
+      
       // 火山引擎的端点可能是用户自定义的，这里使用常见的北京区域端点
       // API Key 格式: ak-xxxxx;sk-xxxxx 或者 Bearer token
       let authorization = apiKey;
@@ -306,23 +328,45 @@ async function callVolcengineAPI(nc: NCItem, section: SectionType, apiKey: strin
         })
       });
 
+      logger.log('火山引擎 API 响应状态:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        logger.error('火山引擎 API 错误详情:', errorData);
+        
+        if (response.status === 401) {
+          throw new Error(`火山引擎 API 认证失败 (401)。请检查：
+1. API Key 格式是否正确
+2. API Key 是否有效且未过期
+3. 是否有访问权限
+
+当前使用的Authorization: ${authorization.substring(0, 20)}...
+错误详情: ${JSON.stringify(errorData)}`);
+        }
+        
         if (response.status === 404) {
           throw new Error(`火山引擎 API 端点未找到 (404)。请检查：
-1. API Key 格式是否正确（应为 ak-xxxxx;sk-xxxxx 或 Bearer token）
-2. 模型名称是否正确（当前使用: doubao-pro-32k）
-3. 区域端点是否正确（当前使用: cn-beijing）
-4. 是否已在火山引擎控制台创建了推理端点
+1. 模型名称是否正确（当前使用: doubao-pro-32k）
+2. 区域端点是否正确（当前使用: cn-beijing）
+3. 是否已在火山引擎控制台创建了推理端点
 
 错误详情: ${JSON.stringify(errorData)}`);
         }
-        throw new Error(`火山引擎 API 错误: ${response.status} ${JSON.stringify(errorData)}`);
+        
+        throw new Error(`火山引擎 API 错误 (${response.status}): ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
-      return data.choices?.[0]?.message?.content || '火山引擎生成失败，请重试。';
+      logger.log('火山引擎 API 响应数据:', data);
+      
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error('火山引擎 API 返回数据格式错误');
+      }
+      
+      return content;
     } catch (error) {
+      logger.error('火山引擎 API 调用异常:', error);
       throw error;
     }
   });
@@ -334,6 +378,8 @@ async function callSiliconFlowAPI(nc: NCItem, section: SectionType, apiKey: stri
     const prompt = buildPrompt(nc, section, closingMeetingDate);
 
     try {
+      logger.log('硅基流动 API 请求开始...');
+      
       const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -354,14 +400,25 @@ async function callSiliconFlowAPI(nc: NCItem, section: SectionType, apiKey: stri
         })
       });
 
+      logger.log('硅基流动 API 响应状态:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`硅基流动 API 错误: ${response.status} ${JSON.stringify(errorData)}`);
+        logger.error('硅基流动 API 错误详情:', errorData);
+        throw new Error(`硅基流动 API 错误 (${response.status}): ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
-      return data.choices?.[0]?.message?.content || '硅基流动生成失败，请重试。';
+      logger.log('硅基流动 API 响应数据:', data);
+      
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error('硅基流动 API 返回数据格式错误');
+      }
+      
+      return content;
     } catch (error) {
+      logger.error('硅基流动 API 调用异常:', error);
       throw error;
     }
   });
