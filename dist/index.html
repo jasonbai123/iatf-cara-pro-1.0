@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="IATF CARA Assistant Pro - 专业的IATF 16949审核不符合项管理工具" />
+    <meta name="theme-color" content="#00a65a" />
+
+
+
+    <title>IATF CARA Assistant Pro</title>
+    <script type="module" crossorigin src="/iatf-cara-pro-1.0/assets/index-OQT5nLcj.js"></script>
+    <link rel="stylesheet" crossorigin href="/iatf-cara-pro-1.0/assets/index-CYuCoJ70.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- 离线提示 -->
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      您当前处于离线状态，部分功能可能无法使用
+    </div>
+
+    <script>
+      // 检测网络状态并显示提示
+      function updateOnlineStatus() {
+        const banner = document.getElementById('offline-banner');
+        if (navigator.onLine) {
+          banner.style.display = 'none';
+        } else {
+          banner.style.display = 'block';
+        }
+      }
+
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+    </script>
+  </body>
+</html>
