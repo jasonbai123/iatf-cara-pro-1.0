@@ -68,8 +68,41 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
   const [displayCode, setDisplayCode] = useState('');
+  const [isOnline, setIsOnline] = useState(true);
+  const [networkType, setNetworkType] = useState<string>('');
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      updateNetworkInfo();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    setIsOnline(navigator.onLine);
+    updateNetworkInfo();
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const updateNetworkInfo = () => {
+    const connection = (navigator as any).connection;
+    if (connection) {
+      setNetworkType(connection.effectiveType || 'unknown');
+    }
+  };
 
   const handleSendCode = async () => {
+    if (!isOnline) {
+      alert('网络连接已断开，请检查网络连接后重试');
+      return;
+    }
+
     if (!phone || phone.length !== 11) {
       alert('请输入正确的手机号码');
       return;
@@ -106,6 +139,11 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
   };
 
   const handleLogin = async () => {
+    if (!isOnline) {
+      alert('网络连接已断开，请检查网络连接后重试');
+      return;
+    }
+
     if (!phone || phone.length !== 11) {
       alert('请输入正确的手机号码');
       return;
@@ -128,6 +166,21 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
 
   return (
     <div className="space-y-4">
+      {!isOnline && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-800 font-medium">⚠️ 网络连接已断开</p>
+          <p className="text-xs text-red-600 mt-1">请检查网络连接后重试</p>
+        </div>
+      )}
+      
+      {isOnline && networkType && (
+        <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs text-blue-800">
+            网络类型: {networkType === '4g' ? '4G/移动网络' : networkType === 'wifi' ? 'WiFi' : networkType}
+          </p>
+        </div>
+      )}
+      
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">手机号码</label>
         <input

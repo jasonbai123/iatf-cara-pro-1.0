@@ -35,57 +35,91 @@ class AuthService {
   }
 
   async sendVerificationCode(phone: string): Promise<SendCodeResponse> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/send-code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone }),
-      });
+    const maxRetries = 3;
+    let lastError: any = null;
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      logger.error('发送验证码失败:', error);
-      return {
-        success: false,
-        message: '发送验证码失败，请稍后重试',
-      };
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const response = await fetch(`${API_BASE_URL}/auth/send-code`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        lastError = error;
+        logger.error(`发送验证码失败 (尝试 ${attempt}/${maxRetries}):`, error);
+
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
     }
+
+    return {
+      success: false,
+      message: '发送验证码失败，请检查网络连接后重试',
+    };
   }
 
   async loginWithPhone(phone: string, code: string): Promise<LoginResponse> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone, code }),
-      });
+    const maxRetries = 3;
+    let lastError: any = null;
 
-      const data = await response.json();
-      
-      if (data.success && data.user && data.token) {
-        this.token = data.token;
-        this.currentUser = data.user;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone, code }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
         
-        if (phone === SUPER_ADMIN_PHONE) {
-          this.currentUser.userType = UserType.ADMIN;
+        if (data.success && data.user && data.token) {
+          this.token = data.token;
+          this.currentUser = data.user;
+          
+          if (phone === SUPER_ADMIN_PHONE) {
+            this.currentUser.userType = UserType.ADMIN;
+          }
+          
+          this.saveToStorage();
         }
-        
-        this.saveToStorage();
-      }
 
-      return data;
-    } catch (error) {
-      logger.error('登录失败:', error);
-      return {
-        success: false,
-        message: '登录失败，请稍后重试',
-      };
+        return data;
+      } catch (error) {
+        lastError = error;
+        logger.error(`登录失败 (尝试 ${attempt}/${maxRetries}):`, error);
+
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
     }
+
+    return {
+      success: false,
+      message: '登录失败，请检查网络连接后重试',
+    };
   }
 
   async loginWithWechat(openId: string): Promise<LoginResponse> {
