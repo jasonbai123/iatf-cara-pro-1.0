@@ -110,7 +110,9 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
 
     try {
       setLoading(true);
+      console.log('开始发送验证码...');
       const response = await authService.sendVerificationCode(phone);
+      console.log('验证码响应:', response);
       
       if (response.success) {
         setCountdown(60);
@@ -125,13 +127,23 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
         }, 1000);
         
         if (response.code) {
+          console.log('设置验证码显示:', response.code);
           setDisplayCode(response.code);
-          alert(`验证码已发送：${response.code}`);
+          
+          // 使用多种方式显示验证码
+          setTimeout(() => {
+            alert(`验证码已生成：${response.code}\n\n请使用此验证码登录`);
+          }, 100);
+        } else {
+          console.error('验证码响应中没有code字段');
+          alert('验证码生成失败：未收到验证码');
         }
       } else {
+        console.error('验证码发送失败:', response.message);
         alert(response.message || '发送验证码失败');
       }
     } catch (error) {
+      console.error('发送验证码异常:', error);
       alert('发送验证码失败，请稍后重试');
     } finally {
       setLoading(false);
@@ -217,12 +229,15 @@ const PhoneLogin: React.FC<{ onLoginSuccess: (response: LoginResponse) => void }
           </button>
         </div>
         {displayCode && (
-          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-800">
-              <span className="font-semibold">测试验证码：</span>
-              <span className="text-lg font-bold ml-2">{displayCode}</span>
-            </p>
-            <p className="text-xs text-green-600 mt-1">（开发测试模式，验证码直接显示）</p>
+          <div className="mt-4 p-4 bg-green-100 border-2 border-green-500 rounded-lg animate-pulse">
+            <div className="text-center">
+              <p className="text-base font-bold text-green-800 mb-2">📱 验证码已生成</p>
+              <div className="text-4xl font-black text-green-700 tracking-widest bg-white py-3 px-6 rounded-lg shadow-inner">
+                {displayCode}
+              </div>
+              <p className="text-sm text-green-600 mt-2">请使用上方验证码登录</p>
+              <p className="text-xs text-green-500 mt-1">（测试模式，验证码有效期5分钟）</p>
+            </div>
           </div>
         )}
       </div>

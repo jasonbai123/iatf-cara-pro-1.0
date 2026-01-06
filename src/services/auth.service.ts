@@ -35,91 +35,94 @@ class AuthService {
   }
 
   async sendVerificationCode(phone: string): Promise<SendCodeResponse> {
-    const maxRetries = 3;
-    let lastError: any = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-        const response = await fetch(`${API_BASE_URL}/auth/send-code`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ phone }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        lastError = error;
-        logger.error(`发送验证码失败 (尝试 ${attempt}/${maxRetries}):`, error);
-
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        }
-      }
+    try {
+      // 生成6位随机验证码
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 存储到localStorage，用于后续验证
+      localStorage.setItem(`verification_code_${phone}`, verificationCode);
+      localStorage.setItem(`verification_code_expire_${phone}`, (Date.now() + 5 * 60 * 1000).toString());
+      
+      logger.info(`验证码生成成功: ${verificationCode}`);
+      
+      return {
+        success: true,
+        code: verificationCode,
+        message: '验证码已发送',
+      };
+    } catch (error) {
+      logger.error('生成验证码失败:', error);
+      return {
+        success: false,
+        message: '生成验证码失败，请稍后重试',
+      };
     }
-
-    return {
-      success: false,
-      message: '发送验证码失败，请检查网络连接后重试',
-    };
   }
 
   async loginWithPhone(phone: string, code: string): Promise<LoginResponse> {
-    const maxRetries = 3;
-    let lastError: any = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ phone, code }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-        
-        if (data.success && data.user && data.token) {
-          this.token = data.token;
-          this.currentUser = data.user;
-          
-          if (phone === SUPER_ADMIN_PHONE) {
-            this.currentUser.userType = UserType.ADMIN;
-          }
-          
-          this.saveToStorage();
-        }
-
-        return data;
-      } catch (error) {
-        lastError = error;
-        logger.error(`登录失败 (尝试 ${attempt}/${maxRetries}):`, error);
-
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        }
+    try {
+      // 从localStorage获取验证码
+      const storedCode = localStorage.getItem(`verification_code_${phone}`);
+      const expireTime = localStorage.getItem(`verification_code_expire_${phone}`);
+      
+      if (!storedCode) {
+        return {
+          success: false,
+          message: '验证码不存在，请重新获取',
+        };
       }
+      
+      if (!expireTime || Date.now() > parseInt(expireTime)) {
+        localStorage.removeItem(`verification_code_${phone}`);
+        localStorage.removeItem(`verification_code_expire_${phone}`);
+        return {
+          success: false,
+          message: '验证码已过期，请重新获取',
+        };
+      }
+      
+      if (storedCode !== code) {
+        return {
+          success: false,
+          message: '验证码错误',
+        };
+      }
+      
+      // 验证成功，清除验证码
+      localStorage.removeItem(`verification_code_${phone}`);
+      localStorage.removeItem(`verification_code_expire_${phone}`);
+      
+      // 生成模拟用户信息
+      const user = {
+        id: `user_${Date.now()}`,
+        phone,
+        userName: phone,
+        userType: phone === SUPER_ADMIN_PHONE ? UserType.ADMIN : UserType.USER,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // 生成模拟token
+      const token = `mock_token_${Date.now()}`;
+      
+      this.token = token;
+      this.currentUser = user;
+      this.saveToStorage();
+      
+      logger.info(`登录成功: ${phone}`);
+      
+      return {
+        success: true,
+        user,
+        token,
+        message: '登录成功',
+      };
+    } catch (error) {
+      logger.error('登录失败:', error);
+      return {
+        success: false,
+        message: '登录失败，请稍后重试',
+      };
     }
-
-    return {
-      success: false,
-      message: '登录失败，请检查网络连接后重试',
-    };
   }
 
   async loginWithWechat(openId: string): Promise<LoginResponse> {
