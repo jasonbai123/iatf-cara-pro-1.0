@@ -5,8 +5,7 @@ const generateToken = (userId, JWT_SECRET) => {
   };
 
   const payload = {
-    userId,
-    exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60)
+    userId
   };
 
   const encode = (obj) => {
@@ -72,10 +71,6 @@ const verifyToken = (token, JWT_SECRET) => {
     }
 
     const payload = JSON.parse(atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/')));
-
-    if (payload.exp < Math.floor(Date.now() / 1000)) {
-      return Promise.reject('Token expired');
-    }
 
     return payload;
   });

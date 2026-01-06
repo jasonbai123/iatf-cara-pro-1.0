@@ -8,7 +8,6 @@ import UserManagement from './components/UserManagement';
 import AdminDashboard from './components/AdminDashboard';
 import ChangePassword from './components/ChangePassword';
 import UpdateNotification from './components/UpdateNotification';
-import ExpiryNotification from './components/ExpiryNotification';
 import { 
   ArrowDownTrayIcon, 
   ArrowUpTrayIcon,
@@ -662,7 +661,6 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen w-full bg-gray-200 font-sans text-sm">
       <UpdateNotification />
-      <ExpiryNotification />
       
       {/* 1. Sidebar (Dark) */}
       <aside className={`bg-[#232d3b] text-white flex flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>

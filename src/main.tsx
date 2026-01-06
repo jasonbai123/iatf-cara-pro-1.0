@@ -47,16 +47,16 @@ initializeApp().then(() => {
   );
 });
 
-// 注册Service Worker（PWA）
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(
-      (registration) => {
-        logger.log('✅ ServiceWorker registered: ', registration);
-      },
-      (registrationError) => {
-        logger.error('❌ ServiceWorker registration failed: ', registrationError);
-      }
-    );
-  });
-}
+// 注册Service Worker（PWA）- 开发环境已禁用
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js').then(
+//       (registration) => {
+//         logger.log('✅ ServiceWorker registered: ', registration);
+//       },
+//       (registrationError) => {
+//         logger.error('❌ ServiceWorker registration failed: ', registrationError);
+//       }
+//     );
+//   });
+// }

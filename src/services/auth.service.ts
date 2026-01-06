@@ -250,37 +250,11 @@ class AuthService {
   }
 
   isUserExpired(): boolean {
-    if (!this.currentUser) {
-      return true;
-    }
-
-    if (this.currentUser.userType === 'premium') {
-      return false;
-    }
-
-    if (!this.currentUser.expiryDate) {
-      return true;
-    }
-
-    const expiryDate = new Date(this.currentUser.expiryDate);
-    const now = new Date();
-    return now > expiryDate;
+    return false;
   }
 
   getRemainingDays(): number {
-    if (!this.currentUser || !this.currentUser.expiryDate) {
-      return 0;
-    }
-
-    if (this.currentUser.userType === 'premium') {
-      return -1;
-    }
-
-    const expiryDate = new Date(this.currentUser.expiryDate);
-    const now = new Date();
-    const diffTime = expiryDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return -1;
   }
 
   isTrialUser(): boolean {
